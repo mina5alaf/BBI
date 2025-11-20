@@ -1,0 +1,102 @@
+Query 1: Simple retrieval from a single table
+Natural Language Query: "Show me the first 5 subscribers"
+Generated SQL: SELECT * FROM dim_subscriber LIMIT 5;
+Expected Output: A DataFrame with the first 5 rows from the `dim_subscriber` sheet, containing columns like `subscriber_key`, `first_name`, `last_name`, `email`, etc.
+
+---
+
+Query 2: Aggregation on a single table
+Natural Language Query: "What is the total data consumed?"
+Generated SQL: SELECT SUM(data_consumed_mb) FROM fact_usage;
+Expected Output: A DataFrame with a single row and a single column containing the sum of all values in the `data_consumed_mb` column from the `fact_usage` sheet.
+
+---
+
+Query 3: Filtering with a WHERE clause
+Natural Language Query: "Show me the subscribers from New York"
+Generated SQL: SELECT * FROM dim_subscriber WHERE city = 'New York';
+Expected Output: A DataFrame containing all rows from the `dim_subscriber` sheet where the `city` column is 'New York'.
+
+---
+
+Query 4: Joining two tables
+Natural Language Query: "What are the names of the subscribers and their churn reasons?"
+Generated SQL: SELECT T1.first_name, T1.last_name, T2.churn_reason FROM dim_subscriber AS T1 JOIN fact_churn AS T2 ON T1.subscriber_key = T2.subscriber_key;
+Expected Output: A DataFrame with three columns: `first_name`, `last_name`, and `churn_reason`, showing the churn reason for each subscriber who has churned.
+
+---
+
+Query 5: Complex query with multiple joins and aggregation
+Natural Language Query: "What is the total data consumed by subscribers using iPhones?"
+Generated SQL: SELECT SUM(T1.data_consumed_mb) FROM fact_usage AS T1 JOIN dim_subscriber AS T2 ON T1.subscriber_key = T2.subscriber_key JOIN dim_device AS T3 ON T2.device_key = T3.device_key WHERE T3.brand = 'iPhone';
+Expected Output: A DataFrame with a single row and a single column containing the total data consumed by all subscribers who have a device with the brand 'iPhone'.
+
+---
+
+Query 6: Aggregation with Group By and Order By
+Natural Language Query: "What is the average call minutes per network type, ordered by average call minutes in descending order?"
+Generated SQL: SELECT T2.network_type, AVG(T1.call_minutes) AS avg_call_minutes FROM fact_usage AS T1 JOIN dim_network AS T2 ON T1.network_key = T2.network_key GROUP BY T2.network_type ORDER BY avg_call_minutes DESC;
+Expected Output: A DataFrame with two columns: `network_type` and `avg_call_minutes`, showing the average call minutes for each network type, sorted from highest to lowest average.
+
+---
+
+Query 7: Filtering by date range and aggregation
+Natural Language Query: "What was the total revenue (total_due) from billing in the year 2023?"
+Generated SQL: SELECT SUM(total_due) FROM fact_billing WHERE STRFTIME('%Y', due_date) = '2023';
+Expected Output: A DataFrame with a single row and a single column containing the sum of `total_due` for all billing records where the `due_date` falls in the year 2023.
+
+---
+
+Query 8: Subquery or Join with conditional aggregation
+Natural Language Query: "Which subscribers have churned and what was their last payment amount?"
+Generated SQL: SELECT T1.first_name, T1.last_name, T3.payment_amount FROM dim_subscriber AS T1 JOIN fact_churn AS T2 ON T1.subscriber_key = T2.subscriber_key JOIN fact_payment AS T3 ON T1.subscriber_key = T3.subscriber_key WHERE T2.churn_date IS NOT NULL ORDER BY T3.payment_amount DESC;
+Expected Output: A DataFrame with `first_name`, `last_name`, and `payment_amount` for subscribers who have churned, showing their last payment amount.
+
+---
+
+Query 9: Counting distinct values with a join
+Natural Language Query: "How many unique products were used by subscribers in the 'Home' sales channel?"
+Generated SQL: SELECT COUNT(DISTINCT T1.product_key) FROM fact_usage AS T1 JOIN dim_sales_channel AS T2 ON T1.sales_channel_key = T2.sales_channel_key WHERE T2.channel_name = 'Home';
+Expected Output: A DataFrame with a single row and a single column containing the count of distinct `product_key` values from `fact_usage` where the `channel_name` in `dim_sales_channel` is 'Home'.
+
+---
+
+Query 10: Multiple aggregations and joins
+Natural Language Query: "For each state, what is the average total usage cost and the total number of SMS messages?"
+Generated SQL: SELECT T2.state, AVG(T1.total_usage_cost) AS avg_usage_cost, SUM(T1.sms_count) AS total_sms FROM fact_usage AS T1 JOIN dim_geography AS T2 ON T1.geography_key = T2.geography_key GROUP BY T2.state;
+Expected Output: A DataFrame with three columns: `state`, `avg_usage_cost`, and `total_sms`, showing the average usage cost and total SMS count for each state.
+
+---
+
+Query 11: Filtering by multiple conditions and aggregation
+Natural Language Query: "What is the total call minutes for subscribers in California who are male?"
+Generated SQL: SELECT SUM(T1.call_minutes) FROM fact_usage AS T1 JOIN dim_subscriber AS T2 ON T1.subscriber_key = T2.subscriber_key JOIN dim_geography AS T3 ON T2.geography_key = T3.geography_key WHERE T3.state = 'California' AND T2.gender = 'Male';
+Expected Output: A DataFrame with a single row and a single column containing the total call minutes for male subscribers in California.
+
+---
+
+Query 12: Counting unique items after a join
+Natural Language Query: "How many unique devices were used by subscribers who churned?"
+Generated SQL: SELECT COUNT(DISTINCT T1.device_key) FROM fact_usage AS T1 JOIN fact_churn AS T2 ON T1.subscriber_key = T2.subscriber_key WHERE T2.churn_date IS NOT NULL;
+Expected Output: A DataFrame with a single row and a single column containing the count of unique `device_key` values used by churned subscribers.
+
+---
+
+Query 13: Aggregation with date filtering and grouping
+Natural Language Query: "What is the monthly average data consumed in 2024?"
+Generated SQL: SELECT T2.month_name, AVG(T1.data_consumed_mb) AS avg_data_consumed FROM fact_usage AS T1 JOIN dim_time AS T2 ON T1.time_key = T2.time_key WHERE T2.year = 2024 GROUP BY T2.month_name ORDER BY T2.month;
+Expected Output: A DataFrame with two columns: `month_name` and `avg_data_consumed`, showing the average data consumed for each month in 2024, ordered by month.
+
+---
+
+Query 14: Finding top N items based on an aggregated value
+Natural Language Query: "Which are the top 3 cities with the highest total usage cost?"
+Generated SQL: SELECT T2.city, SUM(T1.total_usage_cost) AS total_cost FROM fact_usage AS T1 JOIN dim_geography AS T2 ON T1.geography_key = T2.geography_key GROUP BY T2.city ORDER BY total_cost DESC LIMIT 3;
+Expected Output: A DataFrame with two columns: `city` and `total_cost`, showing the top 3 cities with the highest total usage cost, sorted in descending order.
+
+---
+
+Query 15: Complex join with multiple conditions and counting
+Natural Language Query: "How many female subscribers from New York have used a 'Smartphone' device?"
+Generated SQL: SELECT COUNT(DISTINCT T1.subscriber_key) FROM dim_subscriber AS T1 JOIN dim_geography AS T2 ON T1.geography_key = T2.geography_key JOIN dim_device AS T3 ON T1.device_key = T3.device_key WHERE T1.gender = 'Female' AND T2.city = 'New York' AND T3.device_type = 'Smartphone';
+Expected Output: A DataFrame with a single row and a single column containing the count of unique female subscribers from New York who have used a 'Smartphone' device.
